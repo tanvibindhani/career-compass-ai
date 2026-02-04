@@ -35,7 +35,8 @@ const Auth = () => {
         }
         const { error } = await signUp(email, password, fullName);
         if (error) throw error;
-        toast.success("Check your email to confirm your account!");
+        toast.success("Account created! Welcome to CareerPath AI");
+        navigate("/dashboard");
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
