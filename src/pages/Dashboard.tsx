@@ -33,10 +33,14 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!user && !loading) {
+      navigate("/auth");
+      return;
+    }
     if (user) {
       fetchRecommendations();
     }
-  }, [user]);
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (selectedRecommendation) {

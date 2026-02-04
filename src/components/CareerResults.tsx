@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,12 +35,14 @@ interface CareerResultsProps {
 
 const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerResultsProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSaveCareer = async (career: CareerRecommendation, e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (!user) {
       toast.error("Please sign in to save recommendations");
+      navigate("/auth");
       return;
     }
 
