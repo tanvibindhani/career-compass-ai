@@ -26,7 +26,7 @@ const Auth = () => {
         const { error } = await signIn(email, password);
         if (error) throw error;
         toast.success("Welcome back!");
-        navigate("/");
+        navigate("/dashboard");
       } else {
         if (!fullName.trim()) {
           toast.error("Please enter your full name");

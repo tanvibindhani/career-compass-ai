@@ -5,13 +5,13 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
+import Navbar from "@/components/Navbar";
+import DashboardMetrics from "@/components/DashboardMetrics";
+import ImprovementRecommendations from "@/components/ImprovementRecommendations";
 import ProgressTracker, { type ProgressItem } from "@/components/ProgressTracker";
 import { 
-  ArrowLeft, 
   Briefcase, 
   Trash2, 
-  LogOut,
-  User,
   Sparkles
 } from "lucide-react";
 
@@ -25,22 +25,24 @@ interface SavedRecommendation {
 }
 
 const Dashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState<SavedRecommendation[]>([]);
   const [selectedRecommendation, setSelectedRecommendation] = useState<SavedRecommendation | null>(null);
   const [progressItems, setProgressItems] = useState<ProgressItem[]>([]);
+  const [allProgress, setAllProgress] = useState<ProgressItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user && !loading) {
+    if (!user && !authLoading) {
       navigate("/auth");
       return;
     }
     if (user) {
       fetchRecommendations();
+      fetchAllProgress();
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     if (selectedRecommendation) {
@@ -63,6 +65,17 @@ const Dashboard = () => {
       }
     }
     setLoading(false);
+  };
+
+  const fetchAllProgress = async () => {
+    const { data, error } = await supabase
+      .from("learning_progress")
+      .select("*")
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setAllProgress(data);
+    }
   };
 
   const fetchProgress = async (recommendationId: string) => {
@@ -93,11 +106,12 @@ const Dashboard = () => {
     if (error) {
       toast.error("Failed to update progress");
     } else {
-      setProgressItems(items =>
+      const updateItems = (items: ProgressItem[]) =>
         items.map(item =>
           item.id === id ? { ...item, progress_percentage: progress, completed } : item
-        )
-      );
+        );
+      setProgressItems(updateItems);
+      setAllProgress(updateItems);
     }
   };
 
@@ -115,11 +129,12 @@ const Dashboard = () => {
     if (error) {
       toast.error("Failed to update progress");
     } else {
-      setProgressItems(items =>
+      const updateItems = (items: ProgressItem[]) =>
         items.map(item =>
           item.id === id ? { ...item, progress_percentage: progress, completed } : item
-        )
-      );
+        );
+      setProgressItems(updateItems);
+      setAllProgress(updateItems);
       toast.success(completed ? "Marked as complete!" : "Marked as incomplete");
     }
   };
@@ -142,13 +157,32 @@ const Dashboard = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-    toast.success("Signed out successfully");
-  };
+  // Calculate metrics
+  const totalCareers = recommendations.length;
+  const totalResources = allProgress.length;
+  const completedResources = allProgress.filter(p => p.completed).length;
+  const averageProgress = totalResources > 0 
+    ? allProgress.reduce((sum, p) => sum + (p.progress_percentage || 0), 0) / totalResources 
+    : 0;
+  
+  // Calculate recent completions (last 7 days)
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+  const recentCompletions = allProgress.filter(p => 
+    p.completed && p.completed_at && new Date(p.completed_at) > oneWeekAgo
+  ).length;
 
-  if (loading) {
+  // Calculate stalled resources (started but not touched in 7 days)
+  const stalledResources = allProgress.filter(p => 
+    !p.completed && 
+    (p.progress_percentage || 0) > 0 && 
+    new Date(p.updated_at) < oneWeekAgo
+  ).length;
+
+  const hasNoProgress = totalResources === 0;
+  const hasIncompleteCourses = totalResources > 0 && completedResources < totalResources;
+
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <motion.div
@@ -161,38 +195,44 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen">
+      <Navbar />
+      
       {/* Background orbs */}
       <div className="orb w-96 h-96 -top-48 -left-48 opacity-30" />
       <div className="orb w-80 h-80 -bottom-40 -right-40 animation-delay-2000 opacity-30" />
 
-      <div className="container max-w-6xl mx-auto">
-        {/* Header */}
+      <div className="container max-w-6xl mx-auto px-4 pt-24 pb-8">
+        {/* Welcome Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
+          className="mb-8"
         >
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
-              <ArrowLeft className="w-4 h-4" />
-              Back
-            </Button>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary" />
-              <span className="font-semibold">My Dashboard</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 glass px-3 py-2 rounded-full">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm truncate max-w-[150px]">{user?.email}</span>
-            </div>
-            <Button variant="ghost" size="icon" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4" />
-            </Button>
-          </div>
+          <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
+          <p className="text-muted-foreground">Track your career journey and learning progress</p>
         </motion.div>
+
+        {/* Metrics Section */}
+        <div className="mb-8">
+          <DashboardMetrics
+            totalCareers={totalCareers}
+            totalResources={totalResources}
+            completedResources={completedResources}
+            averageProgress={averageProgress}
+            recentCompletions={recentCompletions}
+          />
+        </div>
+
+        {/* Improvement Recommendations */}
+        <div className="mb-8">
+          <ImprovementRecommendations
+            hasNoProgress={hasNoProgress}
+            hasIncompleteCourses={hasIncompleteCourses}
+            stalledResources={stalledResources}
+            onNavigateHome={() => navigate("/")}
+          />
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Saved recommendations sidebar */}
