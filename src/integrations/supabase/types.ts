@@ -14,7 +14,122 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      learning_progress: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          progress_percentage: number | null
+          recommendation_id: string
+          resource_description: string | null
+          resource_title: string
+          resource_type: string
+          resource_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress_percentage?: number | null
+          recommendation_id: string
+          resource_description?: string | null
+          resource_title: string
+          resource_type: string
+          resource_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          progress_percentage?: number | null
+          recommendation_id?: string
+          resource_description?: string | null
+          resource_title?: string
+          resource_type?: string
+          resource_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_progress_recommendation_id_fkey"
+            columns: ["recommendation_id"]
+            isOneToOne: false
+            referencedRelation: "saved_recommendations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_recommendations: {
+        Row: {
+          career_title: string
+          created_at: string
+          description: string | null
+          growth_potential: string | null
+          id: string
+          match_score: number | null
+          rationale: string | null
+          salary_range: string | null
+          skills_match: Json | null
+          user_id: string
+        }
+        Insert: {
+          career_title: string
+          created_at?: string
+          description?: string | null
+          growth_potential?: string | null
+          id?: string
+          match_score?: number | null
+          rationale?: string | null
+          salary_range?: string | null
+          skills_match?: Json | null
+          user_id: string
+        }
+        Update: {
+          career_title?: string
+          created_at?: string
+          description?: string | null
+          growth_potential?: string | null
+          id?: string
+          match_score?: number | null
+          rationale?: string | null
+          salary_range?: string | null
+          skills_match?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

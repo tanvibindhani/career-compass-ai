@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Briefcase, 
   TrendingUp, 
@@ -9,7 +12,8 @@ import {
   ChevronRight,
   Sparkles,
   ArrowLeft,
-  BookOpen
+  BookOpen,
+  Save
 } from "lucide-react";
 
 export interface CareerRecommendation {
@@ -29,6 +33,38 @@ interface CareerResultsProps {
 }
 
 const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerResultsProps) => {
+  const { user } = useAuth();
+
+  const handleSaveCareer = async (career: CareerRecommendation, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error("Please sign in to save recommendations");
+      return;
+    }
+
+    const { error } = await supabase.from("saved_recommendations").insert({
+      user_id: user.id,
+      career_title: career.title,
+      description: career.rationale,
+      match_score: career.matchScore,
+      skills_match: career.skills,
+      growth_potential: career.growthPotential,
+      salary_range: career.salaryRange,
+      rationale: career.rationale,
+    });
+
+    if (error) {
+      if (error.code === "23505") {
+        toast.error("Career already saved");
+      } else {
+        toast.error("Failed to save career");
+      }
+    } else {
+      toast.success(`${career.title} saved to your dashboard!`);
+    }
+  };
+
   return (
     <section className="min-h-screen py-20 px-4">
       <div className="container max-w-5xl mx-auto">
@@ -123,7 +159,18 @@ const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerR
                         {career.rationale}
                       </p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0 hidden md:block" />
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => handleSaveCareer(career, e)}
+                        className="hover:text-primary"
+                        title={user ? "Save to dashboard" : "Sign in to save"}
+                      >
+                        <Save className="w-5 h-5" />
+                      </Button>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all hidden md:block" />
+                    </div>
                   </div>
 
                   {/* Skills */}

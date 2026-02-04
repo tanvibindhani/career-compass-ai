@@ -1,6 +1,11 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   BookOpen, 
   ExternalLink, 
@@ -8,7 +13,9 @@ import {
   Star,
   GraduationCap,
   Briefcase,
-  ArrowLeft
+  ArrowLeft,
+  Save,
+  Check
 } from "lucide-react";
 import type { CareerRecommendation } from "./CareerResults";
 
@@ -46,6 +53,77 @@ const typeColors: Record<string, string> = {
 };
 
 const LearningResources = ({ career, resources, onBack }: LearningResourcesProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [savedRecommendationId, setSavedRecommendationId] = useState<string | null>(null);
+  const [savedResources, setSavedResources] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
+
+  const saveCareerAndResources = async () => {
+    if (!user) {
+      toast.error("Please sign in to save your learning path");
+      navigate("/auth");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // First save the career recommendation
+      const { data: recData, error: recError } = await supabase
+        .from("saved_recommendations")
+        .insert({
+          user_id: user.id,
+          career_title: career.title,
+          description: career.rationale,
+          match_score: career.matchScore,
+          skills_match: career.skills,
+          growth_potential: career.growthPotential,
+          salary_range: career.salaryRange,
+          rationale: career.rationale,
+        })
+        .select()
+        .single();
+
+      if (recError) {
+        if (recError.code === "23505") {
+          toast.error("Career already saved to your dashboard");
+        } else {
+          throw recError;
+        }
+        setSaving(false);
+        return;
+      }
+
+      setSavedRecommendationId(recData.id);
+
+      // Save all learning resources as progress items
+      const progressItems = resources.map((resource) => ({
+        user_id: user.id,
+        recommendation_id: recData.id,
+        resource_title: resource.title,
+        resource_type: resource.type,
+        resource_url: resource.url,
+        resource_description: resource.description,
+        progress_percentage: 0,
+        completed: false,
+      }));
+
+      const { error: progressError } = await supabase
+        .from("learning_progress")
+        .insert(progressItems);
+
+      if (progressError) throw progressError;
+
+      setSavedResources(new Set(resources.map((r) => r.title)));
+      toast.success("Learning path saved! Track your progress in the dashboard.");
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error("Failed to save learning path");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <section className="min-h-screen py-20 px-4">
       <div className="container max-w-5xl mx-auto">
@@ -61,16 +139,42 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
           </Button>
 
           <div className="glass rounded-2xl p-6 md:p-8">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-primary" />
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Briefcase className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold">{career.title}</h1>
+                  <p className="text-muted-foreground">Learning Path & Resources</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold">{career.title}</h1>
-                <p className="text-muted-foreground">Learning Path & Resources</p>
-              </div>
+              <Button
+                variant={savedRecommendationId ? "outline" : "hero"}
+                onClick={saveCareerAndResources}
+                disabled={saving || !!savedRecommendationId}
+                className="gap-2"
+              >
+                {saving ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
+                  />
+                ) : savedRecommendationId ? (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Saved
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Learning Path
+                  </>
+                )}
+              </Button>
             </div>
-            <p className="text-muted-foreground">{career.rationale}</p>
+            <p className="text-muted-foreground mt-4">{career.rationale}</p>
           </div>
         </motion.div>
 
@@ -117,6 +221,12 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
                           <span className="text-sm text-muted-foreground">
                             {resource.provider}
                           </span>
+                          {savedResources.has(resource.title) && (
+                            <Badge variant="secondary" className="bg-green-500/10 text-green-600 border-green-500/20">
+                              <Check className="w-3 h-3 mr-1" />
+                              Tracking
+                            </Badge>
+                          )}
                         </div>
                         <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
                           {resource.title}
@@ -184,13 +294,27 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
             <div>
               <h3 className="font-semibold mb-1">Pro Tip</h3>
               <p className="text-sm text-muted-foreground">
-                Start with the job simulations on Forage to get hands-on experience, 
-                then complement with structured courses to build theoretical knowledge. 
-                This combination is highly valued by employers!
+                Save your learning path to track progress over time. Start with the job simulations 
+                on Forage to get hands-on experience, then complement with structured courses to 
+                build theoretical knowledge. This combination is highly valued by employers!
               </p>
             </div>
           </div>
         </motion.div>
+
+        {/* Dashboard CTA */}
+        {savedRecommendationId && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-6 text-center"
+          >
+            <Button variant="hero" onClick={() => navigate("/dashboard")} className="gap-2">
+              <GraduationCap className="w-4 h-4" />
+              Go to Dashboard
+            </Button>
+          </motion.div>
+        )}
       </div>
     </section>
   );

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Target, TrendingUp } from "lucide-react";
+import AuthButton from "@/components/AuthButton";
 import heroBg from "@/assets/hero-bg.jpg";
 
 interface HeroProps {
@@ -33,6 +34,16 @@ const Hero = ({ onGetStarted }: HeroProps) => {
           backgroundSize: "60px 60px",
         }}
       />
+
+      {/* Auth button in top right */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="absolute top-6 right-6 z-20"
+      >
+        <AuthButton />
+      </motion.div>
 
       <div className="container relative z-10 px-4 py-20">
         <motion.div
