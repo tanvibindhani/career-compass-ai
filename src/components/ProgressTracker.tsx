@@ -19,6 +19,8 @@ export interface ProgressItem {
   resource_description: string | null;
   progress_percentage: number;
   completed: boolean;
+  completed_at?: string | null;
+  updated_at?: string;
 }
 
 interface ProgressTrackerProps {
