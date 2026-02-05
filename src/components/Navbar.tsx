@@ -1,12 +1,14 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { Home, LayoutDashboard, LogIn, LogOut, User, Sparkles } from "lucide-react";
+ import { useTheme } from "@/hooks/useTheme";
+ import { Home, LayoutDashboard, LogIn, LogOut, User, Sparkles, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
 const Navbar = () => {
   const { user, signOut, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -37,6 +39,20 @@ const Navbar = () => {
 
           {/* Navigation Links */}
           <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleTheme}
+              className="gap-2"
+            >
+              {theme === "light" ? (
+                <Moon className="w-4 h-4" />
+              ) : (
+                <Sun className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{theme === "light" ? "Dark" : "Light"}</span>
+            </Button>
+
             <Button
               variant={isActive("/") ? "default" : "ghost"}
               size="sm"
