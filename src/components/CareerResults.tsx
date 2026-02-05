@@ -87,9 +87,19 @@ const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerR
             <span className="text-sm font-medium">Your Personalized Results</span>
           </motion.div>
 
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+          <motion.h2 
+            className="text-4xl md:text-5xl font-bold mb-4"
+            animate={{ 
+              opacity: [1, 0.95, 1],
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+          >
             Your <span className="gradient-text">Career Matches</span>
-          </h2>
+          </motion.h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Based on your profile, here are the careers that align best with your skills, 
             interests, and goals.
