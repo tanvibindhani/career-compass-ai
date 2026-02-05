@@ -59,7 +59,12 @@ const Hero = ({ onGetStarted }: HeroProps) => {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass mb-8"
           >
-            <Sparkles className="w-4 h-4 text-primary" />
+            <motion.div
+              animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <Sparkles className="w-4 h-4 text-primary" />
+            </motion.div>
             <span className="text-sm font-medium text-muted-foreground">
               AI-Powered Career Guidance
             </span>
@@ -73,8 +78,34 @@ const Hero = ({ onGetStarted }: HeroProps) => {
             className="text-5xl md:text-7xl font-bold mb-6 tracking-tight"
           >
             Discover Your{" "}
-            <span className="gradient-text">Perfect Career</span>{" "}
-            Path
+            <motion.span 
+              className="gradient-text inline-block"
+              animate={{ 
+                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+              }}
+              transition={{ 
+                duration: 5, 
+                repeat: Infinity, 
+                ease: "linear" 
+              }}
+              style={{ backgroundSize: "200% 200%" }}
+            >
+              Perfect Career
+            </motion.span>{" "}
+            <motion.span
+              className="inline-block"
+              animate={{ 
+                rotate: [0, 2, -2, 0],
+                scale: [1, 1.02, 1]
+              }}
+              transition={{ 
+                duration: 4, 
+                repeat: Infinity, 
+                ease: "easeInOut" 
+              }}
+            >
+              Path
+            </motion.span>
           </motion.h1>
 
           {/* Subheadline */}

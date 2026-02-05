@@ -210,7 +210,19 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6"
         >
-          <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
+          <motion.h1 
+            className="text-3xl font-bold mb-2"
+            animate={{ 
+              opacity: [1, 0.9, 1],
+            }}
+            transition={{ 
+              duration: 3, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+          >
+            Welcome <span className="gradient-text">back!</span>
+          </motion.h1>
           <p className="text-muted-foreground">Track your career journey and learning progress</p>
         </motion.div>
 
