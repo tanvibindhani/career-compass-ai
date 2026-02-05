@@ -104,7 +104,11 @@ const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerR
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * index, duration: 0.5 }}
-              className="glass rounded-2xl p-6 md:p-8 hover:shadow-glass-lg transition-shadow group cursor-pointer"
+              whileHover={{ 
+                y: -6, 
+                transition: { duration: 0.3, ease: "easeOut" } 
+              }}
+              className="glass rounded-2xl p-6 md:p-8 hover:shadow-glass-lg transition-all duration-300 group cursor-pointer"
               onClick={() => onSelectCareer(career)}
             >
               <div className="flex flex-col md:flex-row gap-6">
@@ -167,7 +171,7 @@ const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerR
                         variant="ghost"
                         size="icon"
                         onClick={(e) => handleSaveCareer(career, e)}
-                        className="hover:text-primary"
+                        className="hover:text-primary hover:scale-110 transition-transform"
                         title={user ? "Save to dashboard" : "Sign in to save"}
                       >
                         <Save className="w-5 h-5" />
@@ -179,39 +183,56 @@ const CareerResults = ({ recommendations, onSelectCareer, onStartOver }: CareerR
                   {/* Skills */}
                   <div className="flex flex-wrap gap-2 mb-4">
                     {career.skills.map((skill) => (
-                      <Badge 
-                        key={skill} 
-                        variant="secondary"
-                        className="bg-primary/10 text-primary border-primary/20"
+                      <motion.div
+                        key={skill}
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ type: "spring", stiffness: 400 }}
                       >
-                        {skill}
-                      </Badge>
+                        <Badge 
+                          variant="secondary"
+                          className="bg-primary/10 text-primary border-primary/20 cursor-default"
+                        >
+                          {skill}
+                        </Badge>
+                      </motion.div>
                     ))}
                   </div>
 
                   {/* Stats */}
                   <div className="grid grid-cols-3 gap-4 pt-4 border-t border-border/50">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-accent" />
+                    <motion.div 
+                      className="flex items-center gap-2"
+                      whileHover={{ x: 2 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <TrendingUp className="w-4 h-4 text-accent transition-transform group-hover:scale-110" />
                       <div>
                         <p className="text-xs text-muted-foreground">Growth</p>
                         <p className="text-sm font-medium">{career.growthPotential}</p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="w-4 h-4 text-primary" />
+                    </motion.div>
+                    <motion.div 
+                      className="flex items-center gap-2"
+                      whileHover={{ x: 2 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <DollarSign className="w-4 h-4 text-primary transition-transform group-hover:scale-110" />
                       <div>
                         <p className="text-xs text-muted-foreground">Salary</p>
                         <p className="text-sm font-medium">{career.salaryRange}</p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-accent" />
+                    </motion.div>
+                    <motion.div 
+                      className="flex items-center gap-2"
+                      whileHover={{ x: 2 }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <Clock className="w-4 h-4 text-accent transition-transform group-hover:scale-110" />
                       <div>
                         <p className="text-xs text-muted-foreground">Transition</p>
                         <p className="text-sm font-medium">{career.timeToTransition}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 </div>
               </div>
