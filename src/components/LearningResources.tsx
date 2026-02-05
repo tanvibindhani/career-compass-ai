@@ -15,14 +15,17 @@ import {
   Briefcase,
   ArrowLeft,
   Save,
-  Check
+  Check,
+  AlertTriangle,
+  Youtube,
+  FileText
 } from "lucide-react";
 import type { CareerRecommendation } from "./CareerResults";
 
 export interface LearningResource {
   title: string;
   provider: string;
-  type: "course" | "simulation" | "certification" | "bootcamp";
+  type: "course" | "simulation" | "certification" | "bootcamp" | "video" | "official";
   duration: string;
   rating: number;
   skills: string[];
@@ -33,6 +36,8 @@ export interface LearningResource {
 interface LearningResourcesProps {
   career: CareerRecommendation;
   resources: LearningResource[];
+  isExamBased?: boolean;
+  pathwayMessage?: string;
   onBack: () => void;
 }
 
@@ -43,6 +48,10 @@ const providerLogos: Record<string, string> = {
   LinkedIn: "💡",
   Google: "🔍",
   edX: "🎯",
+  YouTube: "📺",
+  Official: "🏛️",
+  NPTEL: "🎓",
+  "Khan Academy": "📖",
 };
 
 const typeColors: Record<string, string> = {
@@ -50,9 +59,11 @@ const typeColors: Record<string, string> = {
   simulation: "bg-purple-500/10 text-purple-600 border-purple-500/20",
   certification: "bg-green-500/10 text-green-600 border-green-500/20",
   bootcamp: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  video: "bg-red-500/10 text-red-600 border-red-500/20",
+  official: "bg-slate-500/10 text-slate-600 border-slate-500/20",
 };
 
-const LearningResources = ({ career, resources, onBack }: LearningResourcesProps) => {
+const LearningResources = ({ career, resources, isExamBased, pathwayMessage, onBack }: LearningResourcesProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [savedRecommendationId, setSavedRecommendationId] = useState<string | null>(null);
@@ -178,6 +189,28 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
           </div>
         </motion.div>
 
+        {/* Exam-based pathway alert */}
+        {isExamBased && pathwayMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-8 glass rounded-xl p-6 border-amber-500/30 bg-amber-500/5"
+          >
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-1 text-amber-700 dark:text-amber-400">Structured Pathway Career</h3>
+                <p className="text-sm text-muted-foreground">
+                  {pathwayMessage}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Resources grid */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -186,8 +219,17 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
           className="mb-8"
         >
           <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-primary" />
-            Recommended Resources
+            {isExamBased ? (
+              <>
+                <Youtube className="w-5 h-5 text-red-500" />
+                Preparation Resources
+              </>
+            ) : (
+              <>
+                <GraduationCap className="w-5 h-5 text-primary" />
+                Recommended Resources
+              </>
+            )}
           </h2>
 
           <div className="grid gap-4">
@@ -269,8 +311,14 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
                       className="gap-2 whitespace-nowrap"
                       onClick={() => window.open(resource.url, "_blank")}
                     >
-                      <BookOpen className="w-4 h-4" />
-                      Start Learning
+                      {resource.type === "video" ? (
+                        <Youtube className="w-4 h-4" />
+                      ) : resource.type === "official" ? (
+                        <FileText className="w-4 h-4" />
+                      ) : (
+                        <BookOpen className="w-4 h-4" />
+                      )}
+                      {resource.type === "video" ? "Watch Now" : resource.type === "official" ? "View Resource" : "Start Learning"}
                       <ExternalLink className="w-3 h-3" />
                     </Button>
                   </div>
@@ -294,9 +342,19 @@ const LearningResources = ({ career, resources, onBack }: LearningResourcesProps
             <div>
               <h3 className="font-semibold mb-1">Pro Tip</h3>
               <p className="text-sm text-muted-foreground">
-                Save your learning path to track progress over time. Start with the job simulations 
-                on Forage to get hands-on experience, then complement with structured courses to 
-                build theoretical knowledge. This combination is highly valued by employers!
+                {isExamBased ? (
+                  <>
+                    For exam-based careers, consistency is key! Create a study schedule based on the official syllabus, 
+                    use video resources for concept clarity, and practice with previous year papers. 
+                    Join online communities for peer support and doubt resolution.
+                  </>
+                ) : (
+                  <>
+                    Save your learning path to track progress over time. Start with the job simulations 
+                    on Forage to get hands-on experience, then complement with structured courses to 
+                    build theoretical knowledge. This combination is highly valued by employers!
+                  </>
+                )}
               </p>
             </div>
           </div>

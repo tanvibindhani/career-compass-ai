@@ -23,6 +23,8 @@ const Index = () => {
   const [recommendations, setRecommendations] = useState<CareerRecommendation[]>([]);
   const [selectedCareer, setSelectedCareer] = useState<CareerRecommendation | null>(null);
   const [learningResources, setLearningResources] = useState<LearningResource[]>([]);
+  const [isExamBased, setIsExamBased] = useState(false);
+  const [pathwayMessage, setPathwayMessage] = useState<string | undefined>();
   const [formData, setFormData] = useState<FormData | null>(null);
 
   const handleGetStarted = () => {
@@ -125,6 +127,8 @@ Please provide 3-5 career recommendations with detailed analysis.`,
   const handleSelectCareer = async (career: CareerRecommendation) => {
     setSelectedCareer(career);
     setIsLoading(true);
+    setIsExamBased(false);
+    setPathwayMessage(undefined);
 
     try {
       const response = await fetch(CHAT_URL, {
@@ -163,6 +167,8 @@ Please recommend learning resources to help me transition into this career.`,
 
       const parsed = JSON.parse(jsonMatch[0]);
       setLearningResources(parsed.resources);
+      setIsExamBased(parsed.isExamBased || false);
+      setPathwayMessage(parsed.pathwayMessage);
       setAppState("resources");
     } catch (error) {
       console.error("Resources error:", error);
@@ -184,6 +190,8 @@ Please recommend learning resources to help me transition into this career.`,
     setAppState("results");
     setSelectedCareer(null);
     setLearningResources([]);
+    setIsExamBased(false);
+    setPathwayMessage(undefined);
   };
 
   return (
@@ -206,6 +214,8 @@ Please recommend learning resources to help me transition into this career.`,
         <LearningResources
           career={selectedCareer}
           resources={learningResources}
+          isExamBased={isExamBased}
+          pathwayMessage={pathwayMessage}
           onBack={handleBackToResults}
         />
       )}
