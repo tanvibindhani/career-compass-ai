@@ -6,10 +6,14 @@
  import { Button } from "@/components/ui/button";
  import { Input } from "@/components/ui/input";
  import { Label } from "@/components/ui/label";
- import { Textarea } from "@/components/ui/textarea";
  import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
  import {
    User,
    Mail,
@@ -26,6 +30,9 @@
    X,
    Camera,
    Plus,
+  Upload,
+  Image,
+  Trash2,
  } from "lucide-react";
  
  interface ProfileData {
@@ -48,7 +55,9 @@
    const [loading, setLoading] = useState(true);
    const [saving, setSaving] = useState(false);
    const [uploading, setUploading] = useState(false);
+  const [uploadingCertificate, setUploadingCertificate] = useState(false);
    const fileInputRef = useRef<HTMLInputElement>(null);
+  const certificateInputRef = useRef<HTMLInputElement>(null);
    
    const [profile, setProfile] = useState<ProfileData>({
      full_name: null,
@@ -174,21 +183,82 @@
      setUploading(false);
    };
  
-   const addCertificate = () => {
-     if (newCertificate.trim()) {
-       setProfile({
-         ...profile,
-         certificates: [...(profile.certificates || []), newCertificate.trim()],
-       });
-       setNewCertificate("");
+  const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+    
+    const file = e.target.files[0];
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}.${fileExt}`;
+    const filePath = `${user.id}/${fileName}`;
+
+    setUploadingCertificate(true);
+
+    const { error: uploadError } = await supabase.storage
+      .from("certificates")
+      .upload(filePath, file);
+
+    if (uploadError) {
+      toast.error("Failed to upload certificate");
+      console.error(uploadError);
+      setUploadingCertificate(false);
+      return;
      }
+
+    const { data: urlData } = supabase.storage
+      .from("certificates")
+      .getPublicUrl(filePath);
+
+    const certificateUrl = urlData.publicUrl;
+    const updatedCertificates = [...(profile.certificates || []), certificateUrl];
+
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ certificates: updatedCertificates } as any)
+      .eq("id", user.id);
+
+    if (updateError) {
+      toast.error("Failed to update profile");
+      // Try to delete the uploaded file
+      await supabase.storage.from("certificates").remove([filePath]);
+    } else {
+      setProfile({ ...profile, certificates: updatedCertificates });
+      toast.success("Certificate uploaded!");
+    }
+    setUploadingCertificate(false);
+    // Reset file input
+    if (certificateInputRef.current) {
+      certificateInputRef.current.value = "";
+    }
    };
  
-   const removeCertificate = (index: number) => {
-     setProfile({
-       ...profile,
-       certificates: profile.certificates?.filter((_, i) => i !== index) || [],
-     });
+  const removeCertificate = async (index: number) => {
+    if (!user) return;
+    
+    const certUrl = profile.certificates?.[index];
+    if (!certUrl) return;
+
+    // Extract file path from URL
+    const urlParts = certUrl.split("/certificates/");
+    const filePath = urlParts[1];
+
+    // Delete from storage
+    if (filePath) {
+      await supabase.storage.from("certificates").remove([filePath]);
+    }
+
+    const updatedCertificates = profile.certificates?.filter((_, i) => i !== index) || [];
+    
+    const { error } = await supabase
+      .from("profiles")
+      .update({ certificates: updatedCertificates } as any)
+      .eq("id", user.id);
+
+    if (error) {
+      toast.error("Failed to remove certificate");
+    } else {
+      setProfile({ ...profile, certificates: updatedCertificates });
+      toast.success("Certificate removed");
+    }
    };
  
    const addAchievement = () => {
@@ -474,23 +544,36 @@
                <Award className="w-4 h-4" />
                Certificates
              </Label>
-             <div className="flex flex-wrap gap-2 mb-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-3">
                {profile.certificates?.map((cert, index) => (
-                 <Badge
-                   key={index}
-                   variant="secondary"
-                   className="flex items-center gap-1"
-                 >
-                   {cert}
+                <div key={index} className="relative group">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <div className="aspect-[4/3] rounded-lg overflow-hidden border border-border/50 cursor-pointer hover:border-primary/50 transition-colors bg-muted/30">
+                        <img
+                          src={cert}
+                          alt={`Certificate ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                      <img
+                        src={cert}
+                        alt={`Certificate ${index + 1}`}
+                        className="w-full h-auto rounded-lg"
+                      />
+                    </DialogContent>
+                  </Dialog>
                    {isEditing && (
                      <button
                        onClick={() => removeCertificate(index)}
-                       className="ml-1 hover:text-destructive"
+                      className="absolute -top-2 -right-2 p-1.5 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/90"
                      >
-                       <X className="w-3 h-3" />
+                      <Trash2 className="w-3 h-3" />
                      </button>
                    )}
-                 </Badge>
+                </div>
                ))}
                {(!profile.certificates || profile.certificates.length === 0) &&
                  !isEditing && (
@@ -500,15 +583,35 @@
                  )}
              </div>
              {isEditing && (
-               <div className="flex gap-2">
-                 <Input
-                   value={newCertificate}
-                   onChange={(e) => setNewCertificate(e.target.value)}
-                   placeholder="Add a certificate"
-                   onKeyPress={(e) => e.key === "Enter" && addCertificate()}
+              <div>
+                <input
+                  ref={certificateInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCertificateUpload}
+                  className="hidden"
                  />
-                 <Button variant="outline" size="icon" onClick={addCertificate}>
-                   <Plus className="w-4 h-4" />
+                <Button
+                  variant="outline"
+                  onClick={() => certificateInputRef.current?.click()}
+                  disabled={uploadingCertificate}
+                  className="w-full"
+                >
+                  {uploadingCertificate ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full mr-2"
+                      />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload Certificate Image
+                    </>
+                  )}
                  </Button>
                </div>
              )}
