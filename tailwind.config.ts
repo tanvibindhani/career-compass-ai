@@ -115,6 +115,28 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-5px)" },
         },
+       "glow-pulse": {
+         "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.2)" },
+         "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.4)" },
+       },
+       "card-hover": {
+         "0%": { transform: "translateY(0)" },
+         "100%": { transform: "translateY(-4px)" },
+       },
+       "scale-up": {
+         "0%": { transform: "scale(1)" },
+         "100%": { transform: "scale(1.02)" },
+       },
+       "icon-bounce": {
+         "0%, 100%": { transform: "translateY(0) rotate(0deg)" },
+         "25%": { transform: "translateY(-2px) rotate(-5deg)" },
+         "75%": { transform: "translateY(-2px) rotate(5deg)" },
+       },
+       "gradient-shift": {
+         "0%": { backgroundPosition: "0% 50%" },
+         "50%": { backgroundPosition: "100% 50%" },
+         "100%": { backgroundPosition: "0% 50%" },
+       },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -126,6 +148,11 @@ export default {
         "slide-up": "slide-up 0.6s ease-out forwards",
         "fade-in": "fade-in 0.4s ease-out forwards",
         "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
+       "glow-pulse": "glow-pulse 3s ease-in-out infinite",
+       "card-hover": "card-hover 0.3s ease-out forwards",
+       "scale-up": "scale-up 0.3s ease-out forwards",
+       "icon-bounce": "icon-bounce 0.6s ease-in-out",
+       "gradient-shift": "gradient-shift 8s ease infinite",
       },
     },
   },

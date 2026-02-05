@@ -101,11 +101,23 @@ const Hero = ({ onGetStarted }: HeroProps) => {
               onClick={onGetStarted}
               className="group"
             >
-              <Target className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+              <motion.span
+                className="inline-block"
+                whileHover={{ rotate: 12, scale: 1.1 }}
+                transition={{ type: "spring", stiffness: 400 }}
+              >
+                <Target className="w-5 h-5" />
+              </motion.span>
               Start Your Journey
             </Button>
-            <Button variant="glass" size="lg">
-              <TrendingUp className="w-4 h-4" />
+            <Button variant="glass" size="lg" className="group">
+              <motion.span
+                className="inline-block"
+                animate={{ y: [0, -2, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <TrendingUp className="w-4 h-4" />
+              </motion.span>
               See How It Works
             </Button>
           </motion.div>
@@ -127,11 +139,19 @@ const Hero = ({ onGetStarted }: HeroProps) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.8 + index * 0.1, duration: 0.5 }}
-                className="text-center"
+                whileHover={{ scale: 1.05, y: -2 }}
+                className="text-center cursor-default"
               >
-                <div className="text-3xl md:text-4xl font-bold gradient-text mb-1">
+                <motion.div 
+                  className="text-3xl md:text-4xl font-bold gradient-text mb-1"
+                  animate={{ 
+                    backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"]
+                  }}
+                  transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+                  style={{ backgroundSize: "200% 200%" }}
+                >
                   {stat.value}
-                </div>
+                </motion.div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </motion.div>
             ))}

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
  import { useTheme } from "@/hooks/useTheme";
  import { Home, LayoutDashboard, LogIn, LogOut, User, Sparkles, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const { user, signOut, loading } = useAuth();
@@ -46,9 +46,29 @@ const Navbar = () => {
               className="gap-2"
             >
               {theme === "light" ? (
-                <Moon className="w-4 h-4" />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key="moon"
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: 180 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Moon className="w-4 h-4" />
+                  </motion.div>
+                </AnimatePresence>
               ) : (
-                <Sun className="w-4 h-4" />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key="sun"
+                    initial={{ scale: 0, rotate: 180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, rotate: -180 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Sun className="w-4 h-4" />
+                  </motion.div>
+                </AnimatePresence>
               )}
               <span className="hidden sm:inline">{theme === "light" ? "Dark" : "Light"}</span>
             </Button>
