@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import DashboardMetrics from "@/components/DashboardMetrics";
 import ImprovementRecommendations from "@/components/ImprovementRecommendations";
 import ProgressTracker, { type ProgressItem } from "@/components/ProgressTracker";
+import ProfileSection from "@/components/ProfileSection";
 import { 
   Briefcase, 
   Trash2, 
@@ -207,14 +208,29 @@ const Dashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-6"
         >
           <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
           <p className="text-muted-foreground">Track your career journey and learning progress</p>
         </motion.div>
 
+        {/* Profile Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8"
+        >
+          <ProfileSection />
+        </motion.div>
+
         {/* Metrics Section */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="mb-8"
+        >
           <DashboardMetrics
             totalCareers={totalCareers}
             totalResources={totalResources}
@@ -222,19 +238,29 @@ const Dashboard = () => {
             averageProgress={averageProgress}
             recentCompletions={recentCompletions}
           />
-        </div>
+        </motion.div>
 
         {/* Improvement Recommendations */}
-        <div className="mb-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
+        >
           <ImprovementRecommendations
             hasNoProgress={hasNoProgress}
             hasIncompleteCourses={hasIncompleteCourses}
             stalledResources={stalledResources}
             onNavigateHome={() => navigate("/")}
           />
-        </div>
+        </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="grid md:grid-cols-3 gap-6"
+        >
           {/* Saved recommendations sidebar */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -326,7 +352,7 @@ const Dashboard = () => {
               </div>
             )}
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
