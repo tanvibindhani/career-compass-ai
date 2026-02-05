@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -47,6 +47,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         data: { full_name: fullName },
       },
     });
+    
+    // If signup succeeded and we have a session, we're good
+    if (!error && data.session) {
+      return { error: null };
+    }
+    
+    // If no session after signup (auto-confirm might not have kicked in), 
+    // try to sign in immediately
+    if (!error && !data.session) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      return { error: signInError as Error | null };
+    }
+    
     return { error: error as Error | null };
   };
 
