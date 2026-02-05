@@ -123,7 +123,7 @@
 @layer components {
   /* Glassmorphism card effect */
   .glass {
-    @apply backdrop-blur-xl bg-white/70 border border-white/50 shadow-xl;
+    @apply backdrop-blur-xl bg-white/70 dark:bg-slate-900/70 border border-white/50 dark:border-slate-700/50 shadow-xl;
   }
 
   .glass-dark {
