@@ -265,11 +265,9 @@ export const StaggerCareerCards: React.FC<StaggerCareerCardsProps> = ({
 
           {/* Dots */}
           <div className="flex gap-1.5">
-            {list.slice(0, Math.min(list.length, 7)).map((_, i) => {
-              const centerIndex = list.length % 2
-                ? (list.length + 1) / 2
-                : list.length / 2;
-              const isActive = i === Math.floor(centerIndex);
+            {list.slice(0, Math.min(list.length, 9)).map((_, i) => {
+              // The first item in `list` is always what appears in center position
+              const isActive = i === 0;
               return (
                 <div
                   key={i}
