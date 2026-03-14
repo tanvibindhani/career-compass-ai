@@ -157,12 +157,15 @@ interface StaggerCareerCardsProps {
   onSaveCareer: (career: CareerRecommendation, e: React.MouseEvent) => void;
 }
 
+// Number of visible cards — always odd so center card is truly centered
+const VISIBLE = 5;
+
 export const StaggerCareerCards: React.FC<StaggerCareerCardsProps> = ({
   recommendations,
   onSelectCareer,
   onSaveCareer,
 }) => {
-  const [cardSize, setCardSize] = useState(340);
+  const [cardSize, setCardSize] = useState(380);
   const [list, setList] = useState(
     recommendations.map((r, i) => ({ ...r, tempId: i }))
   );
@@ -188,7 +191,7 @@ export const StaggerCareerCards: React.FC<StaggerCareerCardsProps> = ({
   useEffect(() => {
     const update = () => {
       const { matches } = window.matchMedia("(min-width: 640px)");
-      setCardSize(matches ? 340 : 270);
+      setCardSize(matches ? 380 : 290);
     };
     update();
     window.addEventListener("resize", update);
@@ -200,18 +203,29 @@ export const StaggerCareerCards: React.FC<StaggerCareerCardsProps> = ({
     setList(recommendations.map((r, i) => ({ ...r, tempId: i })));
   }, [recommendations]);
 
+  // Pad list to always have at least VISIBLE items so center (position 0) is always a real card
+  const paddedList = list.length >= VISIBLE
+    ? list
+    : [
+        ...list,
+        ...Array.from({ length: VISIBLE - list.length }, (_, i) => ({
+          ...list[i % list.length],
+          tempId: `pad-${i}`,
+        })),
+      ];
+
+  const centerIndex = Math.floor(VISIBLE / 2); // always 2 for VISIBLE=5
+
   return (
     <div className="flex flex-col items-center gap-8">
       {/* Stagger cards stage */}
       <div
         className="relative w-full"
-        style={{ height: cardSize + 120 }}
+        style={{ height: cardSize + 130 }}
       >
-        {list.map((career, index) => {
-          const position =
-            list.length % 2
-              ? index - (list.length + 1) / 2
-              : index - list.length / 2;
+        {paddedList.slice(0, VISIBLE).map((career, index) => {
+          // position: -2, -1, 0, 1, 2 — card at centerIndex is always 0
+          const position = index - centerIndex;
           return (
             <CareerCard
               key={career.tempId}
